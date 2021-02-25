@@ -289,7 +289,6 @@ class Azul_game():
 
         if (player == "P1"):
             if (self.p1_score + points > 0):
-
                 self.p1_score = self.p1_score + points
             else:
                 self.p1_score = 0
@@ -343,7 +342,7 @@ class Azul_game():
             return
         else : return False
 
-    def final_points(self,player):
+    def compute_final_points(self):
         def row_completed_score(scoreboard):
             row_completed = 0
             for row in scoreboard:
@@ -378,12 +377,12 @@ class Azul_game():
             return tile_completed *7
 
 
-        if(player == "P1"):
-            scoreboard = self.board_p1
-            self.p1_score = self.p1_score + row_completed_score(scoreboard) + column_completed_score(scoreboard) + tile_completed_score(scoreboard)
-        else:
-            scoreboard = self.board_p2
-            self.p2_score = self.p2_score + row_completed_score(scoreboard) + column_completed_score(scoreboard) + tile_completed_score(scoreboard)
+        #calcola per P1
+        scoreboard = self.board_p1
+        self.p1_score = self.p1_score + row_completed_score(scoreboard) + column_completed_score(scoreboard) + tile_completed_score(scoreboard)
+        #calcola per P2
+        scoreboard = self.board_p2
+        self.p2_score = self.p2_score + row_completed_score(scoreboard) + column_completed_score(scoreboard) + tile_completed_score(scoreboard)
 
     def print_table(self):
 

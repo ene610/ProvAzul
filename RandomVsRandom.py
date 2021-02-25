@@ -51,8 +51,8 @@ class RandomVsRandom():
                 if not self.board.gameover:
                     self.board.create_drawing_pit()
 
-        self.board.final_points("P1")
-        self.board.final_points("P2")
+        self.board.compute_final_points()
+        #self.board.final_points("P2")
         self.board.print_table()
 
     def player_action(self):
