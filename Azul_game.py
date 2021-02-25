@@ -399,3 +399,20 @@ class Azul_game():
         print(self.drawing_pit)
         print("=" * 20)
 
+    def game_to_string(self):
+
+        str = ""
+        str += f"P1:{self.p1_score}" + "\n"
+        str += f"{self.board_p1}" + "\n"
+        str += f"row_p1:{self.rows_p1}" + "\n"
+        str += f"penality:{self.penalty_row_p1}" + "\n"
+        str += "=" * 20 + "\n"
+        str += f"P2:{self.p2_score}" + "\n"
+        str += f"{self.board_p2}" + "\n"
+        str += f"row_p2:{self.rows_p2}" + "\n"
+        str += f"penality:{self.penalty_row_p2}" + "\n"
+        str += "=" * 20 + "\n"
+        str += f"{self.drawing_pit}" + "\n"
+        str += "=" * 20 + "\n"
+
+        return str
