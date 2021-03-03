@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Azul_game():
 
     def __init__(self):
@@ -9,7 +10,7 @@ class Azul_game():
 
         self.player_turn = "P1"
         self.initial_player = "P1"
-        #refattorizza nome
+        # refattorizza nome
         self.new_first_player = True
 
         self.board_p1 = np.zeros((5, 5), dtype=int)
@@ -26,6 +27,8 @@ class Azul_game():
         self.gameover = False
         self.is_done_phase = False
 
+        self.penality_for_action = 0
+
     def initialize_rows(self):
 
         first_row = np.zeros(1, dtype=int)
@@ -33,9 +36,8 @@ class Azul_game():
         third_row = np.zeros(3, dtype=int)
         fourth_row = np.zeros(4, dtype=int)
         fifth_row = np.zeros(5, dtype=int)
-        penalty_row = np.zeros(7, dtype=int)
 
-        # return [first_row , second_row , third_row , fourth_row , fifth_row , penalty_row]
+        # return [first_row , second_row , third_row , fourth_row , fifth_row]
         return [[0], [0, 0], [0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0, 0]]
 
     def create_drawing_pit(self):
@@ -60,42 +62,13 @@ class Azul_game():
 
         self.penalty_row_p1 = [0, 0, 0, 0, 0, 0, 0]
         self.penalty_row_p2 = [0, 0, 0, 0, 0, 0, 0]
-        self.drawing_pit =  pit_collection
-
-    def play_turn(self, player, pit_choice, tile_type, column_choice):
-
-        #controlla se è una mossa valida
-        if(self.valid_move(player, pit_choice, tile_type, column_choice)):
-            drawed_tiles = self.take_tile_from_pit(pit_choice, tile_type,player)
-
-            if(pit_choice == 5 and self.new_first_player):
-                self.initial_player = player
-                self.new_first_player = False
-                #aggiunge 1 penalità
-                self.insert_tiles_in_penalty_column(1, player)
-
-            # inserisci tile nella colonna specificata del player
-
-            if (column_choice != 5):
-                    self.insert_tiles_in_column(tile_type, drawed_tiles, column_choice, player)
-            else:
-                # se 5 allora inserisci direttamente nella colonna penalità
-                self.insert_tiles_in_penalty_column(drawed_tiles, player)
-
-            if self.player_turn == "P1":
-                self.player_turn = "P2"
-            else:
-                self.player_turn = "P1"
-
-            return True
-
-        return False
+        self.drawing_pit = pit_collection
 
     def valid_move(self, player, pit_choice, tile_type, column_choice):
 
         drawed_tile = self.drawing_pit[pit_choice][tile_type]
 
-        if(drawed_tile == 0):
+        if (drawed_tile == 0):
             return False
 
         if (player == "P1"):
@@ -104,7 +77,7 @@ class Azul_game():
         else:
             rows = self.rows_p2
             scoreboard = self.board_p2
-        if(column_choice != 5):
+        if (column_choice != 5):
             position = ((tile_type + column_choice) % 5)
             if (scoreboard[column_choice][position] == 1):
                 return False
@@ -112,7 +85,8 @@ class Azul_game():
                 return True
             return False
 
-        else: return True
+        else:
+            return True
 
     def take_tile_from_pit(self, pit_choice, tile_type, player):
 
@@ -147,12 +121,12 @@ class Azul_game():
 
         for i in range(column_choice + 1):
 
-                if (rows[column_choice][i] == 0 and number_of_drawed_tile > 0):
-                    rows[column_choice][i] = tile_type + 1
-                    number_of_drawed_tile = number_of_drawed_tile - 1
+            if (rows[column_choice][i] == 0 and number_of_drawed_tile > 0):
+                rows[column_choice][i] = tile_type + 1
+                number_of_drawed_tile = number_of_drawed_tile - 1
 
-                #mette le rimanenti nella penality column
-                self.insert_tiles_in_penalty_column(number_of_drawed_tile, player)
+            # mette le rimanenti nella penality column
+            self.insert_tiles_in_penalty_column(number_of_drawed_tile, player)
 
     def insert_tiles_in_penalty_column(self, number_of_tiles, player):
 
@@ -161,40 +135,51 @@ class Azul_game():
         else:
             penality_row = self.penalty_row_p2
 
-        #se si riempie la penality column allora vanno scartate le tessere
+        # se si riempie la penality column allora vanno scartate le tessere
         for i in range(7):
             if (penality_row[i] == 0 and number_of_tiles > 0):
                 penality_row[i] = 1
+
+                if (i < 2):
+                    self.penality_for_action = self.penality_for_action + 1
+                elif (i < 5):
+                    self.penality_for_action = self.penality_for_action + 2
+                else:
+                    self.penality_for_action = self.penality_for_action + 3
+
                 number_of_tiles = number_of_tiles - 1
 
-    def calculate_score(self, player):
+    def play_turn(self, player, pit_choice, tile_type, column_choice):
 
-        # calcolo dello score
-        if (player == "P1"):
-            rows = self.rows_p1
+        self.penality_for_action = 0
 
-        else:
-            rows = self.rows_p2
+        # controlla se è una mossa valida
+        if (self.valid_move(player, pit_choice, tile_type, column_choice)):
 
-        index_row = 0
-        for row in rows:
-            first_elem = row[0]
-            completed_row = True
+            drawed_tiles = self.take_tile_from_pit(pit_choice, tile_type, player)
 
-            for elem in row:
-                if (elem != first_elem or elem == 0):
-                    completed_row = False
-                    break
+            if (pit_choice == 5 and self.new_first_player):
+                self.initial_player = player
+                self.new_first_player = False
+                # aggiunge 1 penalità
+                self.insert_tiles_in_penalty_column(1, player)
 
-            if (completed_row):
-                # manca metodo pulisci row
-                self.clear_row(index_row, player)
-                partial_score = self.add_tile_to_scoreboard(first_elem, player, index_row)
-                self.update_score(player, partial_score)
+            # inserisci tile nella colonna specificata del player
 
-            index_row = index_row + 1
-        # calculate penality
-        self.calculate_penality(player)
+            if (column_choice != 5):
+                self.insert_tiles_in_column(tile_type, drawed_tiles, column_choice, player)
+            else:
+                # se 5 allora inserisci direttamente nella colonna penalità
+                self.insert_tiles_in_penalty_column(drawed_tiles, player)
+
+            if self.player_turn == "P1":
+                self.player_turn = "P2"
+            else:
+                self.player_turn = "P1"
+
+            return True
+
+        return False
 
     def clear_row(self, index_row, player):
 
@@ -298,19 +283,47 @@ class Azul_game():
             else:
                 self.p2_score = 0
 
-    def valid_actions(self,player):
+    def calculate_score(self, player):
+
+        # calcolo dello score
+        if (player == "P1"):
+            rows = self.rows_p1
+
+        else:
+            rows = self.rows_p2
+
+        index_row = 0
+        for row in rows:
+            first_elem = row[0]
+            completed_row = True
+
+            for elem in row:
+                if (elem != first_elem or elem == 0):
+                    completed_row = False
+                    break
+
+            if (completed_row):
+                self.clear_row(index_row, player)
+                partial_score = self.add_tile_to_scoreboard(first_elem, player, index_row)
+                self.update_score(player, partial_score)
+
+            index_row = index_row + 1
+        # calculate penality
+        self.calculate_penality(player)
+
+    def valid_actions(self, player):
         valid_actions = []
         for i in range(6):
             for j in range(5):
                 for k in range(6):
-                    if(self.valid_move(player, i, j, k)):
-                        valid_actions.append([i,j,k])
+                    if (self.valid_move(player, i, j, k)):
+                        valid_actions.append([i, j, k])
         return valid_actions
 
     def is_turn_done(self):
         for pit in self.drawing_pit:
             for tile_type in pit:
-                if(tile_type != 0):
+                if (tile_type != 0):
                     self.is_done_phase = False
                     return
 
@@ -318,14 +331,14 @@ class Azul_game():
         return
 
     def is_game_done(self):
-        #controlla la board p1
+        # controlla la board p1
         self.is_turn_done()
         if self.is_done_phase:
             for row in self.board_p1:
                 completed_tiles_in_a_row = 0
                 for tile in row:
                     completed_tiles_in_a_row = completed_tiles_in_a_row + tile
-                if(completed_tiles_in_a_row == 5):
+                if (completed_tiles_in_a_row == 5):
                     self.gameover = True
                     return
 
@@ -340,7 +353,8 @@ class Azul_game():
 
             self.gameover = False
             return
-        else : return False
+        else:
+            return False
 
     def compute_final_points(self):
         def row_completed_score(scoreboard):
@@ -348,41 +362,72 @@ class Azul_game():
             for row in scoreboard:
                 n_tile_in_a_row = 0
                 for tile in row:
-                    if(tile == 1):
-                        n_tile_in_a_row = n_tile_in_a_row +1
-                if(n_tile_in_a_row == 5):
+                    if (tile == 1):
+                        n_tile_in_a_row = n_tile_in_a_row + 1
+                if (n_tile_in_a_row == 5):
                     row_completed = row_completed + 1
             return row_completed * 2
+
         def column_completed_score(scoreboard):
             column_completed = 0
-            cumulative = [0,0,0,0,0]
+            cumulative = [0, 0, 0, 0, 0]
 
             for row in scoreboard:
                 cumulative = cumulative + row
             for elem in cumulative:
-                if(elem == 5):
+                if (elem == 5):
                     column_completed = column_completed + 1
             return column_completed * 5
 
         def tile_completed_score(scoreboard):
             tile_completed = 0
-            tile_array = [0,0,0,0,0]
+            tile_array = [0, 0, 0, 0, 0]
             for i in range(5):
                 for j in range(5):
-                    if(scoreboard[i][j] == 1):
-                        tile_array[(i+j) % 5] = tile_array[(i+j) % 5] + 1
+                    if (scoreboard[i][j] == 1):
+                        tile_array[(i + j) % 5] = tile_array[(i + j) % 5] + 1
             for elem in tile_array:
-                if(elem == 5):
+                if (elem == 5):
                     tile_completed = tile_completed + 1
-            return tile_completed *7
+            return tile_completed * 7
 
-
-        #calcola per P1
+        # calcola per P1
         scoreboard = self.board_p1
-        self.p1_score = self.p1_score + row_completed_score(scoreboard) + column_completed_score(scoreboard) + tile_completed_score(scoreboard)
-        #calcola per P2
+        self.p1_score = self.p1_score + row_completed_score(scoreboard) + column_completed_score(
+            scoreboard) + tile_completed_score(scoreboard)
+        # calcola per P2
         scoreboard = self.board_p2
-        self.p2_score = self.p2_score + row_completed_score(scoreboard) + column_completed_score(scoreboard) + tile_completed_score(scoreboard)
+        self.p2_score = self.p2_score + row_completed_score(scoreboard) + column_completed_score(
+            scoreboard) + tile_completed_score(scoreboard)
+
+    def from_action_to_tuple_action(self, action):
+
+        action_pit_choice = 0
+        action_tile_type = 0
+        action_column_choice = 0
+
+        if action < 6:
+            action_pit_choice = action
+            return action_pit_choice, action_tile_type, action_column_choice
+
+        if action < 30:
+            action_pit_choice = action % 6
+            action_tile_type = int(action / 6)
+            return action_pit_choice, action_tile_type, action_column_choice
+
+        action_pit_choice = action % 6
+        action_tile_type = int((action % (6 * 5)) / 6)
+        action_column_choice = int(action / (6 * 5))
+
+        return action_pit_choice, action_tile_type, action_column_choice
+
+    def from_tuple_action_to_action(self, action_pit_choice, action_tile_type, action_column_choice):
+
+        a = action_pit_choice
+        b = action_tile_type
+        c = action_column_choice
+
+        return action_pit_choice + action_tile_type * 6 + action_column_choice * 6 * 5
 
     def print_table(self):
 
@@ -401,18 +446,18 @@ class Azul_game():
 
     def game_to_string(self):
 
-        str = ""
-        str += f"P1:{self.p1_score}" + "\n"
-        str += f"{self.board_p1}" + "\n"
-        str += f"row_p1:{self.rows_p1}" + "\n"
-        str += f"penality:{self.penalty_row_p1}" + "\n"
-        str += "=" * 20 + "\n"
-        str += f"P2:{self.p2_score}" + "\n"
-        str += f"{self.board_p2}" + "\n"
-        str += f"row_p2:{self.rows_p2}" + "\n"
-        str += f"penality:{self.penalty_row_p2}" + "\n"
-        str += "=" * 20 + "\n"
-        str += f"{self.drawing_pit}" + "\n"
-        str += "=" * 20 + "\n"
+        board_str = ""
+        board_str += f"P1:{self.p1_score}" + "\n"
+        board_str += f"{self.board_p1}" + "\n"
+        board_str += f"row_p1:{self.rows_p1}" + "\n"
+        board_str += f"penality:{self.penalty_row_p1}" + "\n"
+        board_str += "=" * 20 + "\n"
+        board_str += f"P2:{self.p2_score}" + "\n"
+        board_str += f"{self.board_p2}" + "\n"
+        board_str += f"row_p2:{self.rows_p2}" + "\n"
+        board_str += f"penality:{self.penalty_row_p2}" + "\n"
+        board_str += "=" * 20 + "\n"
+        board_str += f"{self.drawing_pit}" + "\n"
+        board_str += "=" * 20 + "\n"
 
-        return str
+        return board_str

@@ -16,3 +16,5 @@ class RandomAzulPlayer():
         random.shuffle(actions)
         action = actions.pop()
         return action
+
+

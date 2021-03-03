@@ -61,5 +61,5 @@ class RandomVsRandom():
             self.player_1.set_board(self.board)
             return self.player_1.random_action()
         else:
-            self.player_1.set_board(self.board)
-            return self.player_1.random_action()
+            self.player_2.set_board(self.board)
+            return self.player_2.random_action()
